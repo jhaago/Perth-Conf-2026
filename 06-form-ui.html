@@ -1,0 +1,916 @@
+<!-- FILE: 06-form-ui.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perth Conference 2026 - Pastor Registration</title>
+<style>
+  :root{
+    --primary:#2B5E9C; --bg:#f7f8fa; --card:#fff; --border:#e6e9ef; --text:#202124; --muted:#5f6368;
+    --danger:#b42318; --danger-bg:#fee2e2; --danger-border:#fecaca;
+    --ok:#0a5a2c; --ok-bg:#e7f6ed;
+    --fs-body:14px; --fs-h1:22px; --fs-h2:18px; --fs-label:14px; --fs-control:14px;
+    --fs-help:12px;
+    --pad-x:14px; --pad-y:10px; --radius:10px;
+    --control-min:48px; --btn-min:48px;
+    --gap:12px; --card-pad:18px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font:var(--fs-body)/1.55 Arial,Helvetica,sans-serif; -webkit-text-size-adjust:100%}
+  #page{filter:none; transition: filter .25s ease}
+  .wrap{max-width:1000px; width:95%; margin:20px auto; padding:0 8px}
+  .banner{width:100%; height:auto; border-radius:12px; display:<?= p.bannerUrl ? 'block' : 'none' ?>; margin-bottom:14px}
+
+  .card{width:100%; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:var(--card-pad); margin:0 auto 16px; box-shadow:0 2px 10px rgba(0,0,0,0.04)}
+  h1{margin:0 0 6px 0;font-size:var(--fs-h1)}
+  h2{margin:0 0 8px 0;font-size:var(--fs-h2)}
+  .muted{color:var(--muted);font-size:24px;font-weight:700;margin-bottom:10px}
+
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:var(--gap)}
+  .full{grid-column:1 / -1}
+  label{font-weight:bold;display:block;margin:0 0 6px 0; font-size:var(--fs-label)}
+  input[type="text"],input[type="email"],input[type="date"],input[type="tel"],textarea,select{
+    width:100%; padding:var(--pad-y) var(--pad-x); border:1px solid #cfd3dc; border-radius:var(--radius); background:#fff;
+    font-size:var(--fs-control); min-height:var(--control-min);
+  }
+  textarea{min-height:90px;resize:vertical}
+
+  .sub{font-size:var(--fs-help);color:var(--muted);margin-top:6px}
+  .note{background:var(--ok-bg); color:var(--ok); border:1px solid #c9ecd5; border-radius:8px; padding:8px; margin-top:8px; font-size:var(--fs-help)}
+  .error{background:#fde8e8; color:#b42318; border:1px solid #fecaca; border-radius:8px; padding:8px; margin-top:8px; font-size:var(--fs-help)}
+  .field-error{color:#d92d20; font-size:var(--fs-help); margin-top:6px}
+
+  .invalid{border-color:#d92d20 !important; box-shadow:0 0 0 2px rgba(217,45,32,.12) inset}
+  .tog.invalid{outline:2px solid #d92d20; border-radius:10px}
+
+  .tog{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;justify-content:flex-start}
+  .btn{
+    padding:var(--pad-y) var(--pad-x);min-height:var(--btn-min);
+    border:1px solid #cfd3dc;border-radius:var(--radius);cursor:pointer;background:#fff;font-size:var(--fs-control);
+    transition:transform .06s ease, filter .12s ease, box-shadow .12s ease; touch-action:manipulation;
+  }
+  .btn:hover{filter:brightness(0.97)} .btn:active{transform:translateY(1px)}
+  .btn:focus-visible{outline:0; box-shadow:0 0 0 3px rgba(26,115,232,.35)}
+  .btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
+
+  .collapse{overflow:hidden;max-height:0;opacity:0;transition:max-height .25s ease,opacity .2s ease}
+  .collapse.show{max-height:99999px;opacity:1}
+
+  /* visual spacing once blocks open */
+  #pastorExtras.collapse.show,
+  #wifeNameWrap.collapse.show,
+  #infantSection.collapse.show,
+  #accomWrap.collapse.show,
+  #infantWrap.collapse.show {
+    border-top:1px solid var(--border);
+    padding-top:var(--gap);
+    margin-top:0 !important;
+  }
+
+  .actions{margin-top:12px;display:flex;gap:16px;flex-wrap:wrap}
+  .primary,.secondary{
+    display:inline-flex; align-items:center; justify-content:center;
+    background:var(--primary); color:#fff; border:0; border-radius:var(--radius);
+    padding:calc(var(--pad-y) + 12px) calc(var(--pad-x) + 24px);
+    font-weight:bold; cursor:pointer; min-height:var(--btn-min); font-size:var(--fs-control);
+    transition:transform .06s ease, filter .12s ease, box-shadow .12s ease; touch-action:manipulation;
+  }
+  .secondary::before{content:"+"; display:inline-block; margin-right:12px; color:#fff; font-weight:bold}
+
+  .del-card{background:#fafbff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+  .del-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .del-remove{
+    display:inline-flex; align-items:center; justify-content:center;
+    background:var(--danger-bg); color:var(--danger); border:1px solid var(--danger-border);
+    border-radius:var(--radius); padding:var(--pad-y) var(--pad-x); min-height:var(--btn-min); font-size:var(--fs-control);
+    cursor:pointer;
+  }
+
+  .overlay{position:fixed; inset:0; background:rgba(10,20,30,0.35); display:none; align-items:center; justify-content:center; z-index:9999; opacity:0; transition:opacity .4s ease}
+  .overlay.show{display:flex; opacity:1;}
+  .modal{background:#fff; border-radius:14px; padding:22px 24px; box-shadow:0 6px 24px rgba(0,0,0,0.15); min-width:320px; max-width:90%; text-align:center;}
+  .icon{width:44px;height:44px;display:none;margin:0 auto 12px}
+  .icon.show{display:block}
+  #overlayCheck path{stroke:#12b76a; fill:none}
+  #overlayCross path{stroke:#d92d20; fill:none}
+  .spinner{width:44px;height:44px;border-radius:50%; border:3px solid #e6eefc; border-top-color:var(--primary); animation:spin 0.9s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .overlay-title{font-weight:bold;margin-bottom:6px}
+  .overlay-text{color:#444}
+  .toast{position:fixed; bottom:18px; right:18px; background:#e7f6ed; color:#0a5a2c; border:1px solid #c9ecd5; border-radius:10px; padding:10px 14px; box-shadow:0 4px 14px rgba(0,0,0,0.08); display:none; z-index:99999}
+  .toast.show{display:block; animation:fadeToast 3.6s ease forwards}
+  @keyframes fadeToast{0%{opacity:0;transform:translateY(6px)}10%{opacity:1;transform:translateY(0)}80%{opacity:1}100%{opacity:0}}
+
+  .combo-wrap{position:relative}
+  .combo-list{
+    position:absolute; left:0; right:0; top:calc(100% + 4px);
+    background:#fff; border:1px solid #cfd3dc; border-radius:10px; max-height:220px; overflow:auto;
+    box-shadow:0 6px 16px rgba(0,0,0,.08); display:none; z-index:9999;
+  }
+  .combo-list.show{display:block}
+  .combo-item{padding:10px 12px; cursor:pointer; font-size:var(--fs-control)}
+  .combo-item:hover, .combo-item.active{background:#f2f6ff}
+
+  @media (max-width:1050px){
+    .grid { grid-template-columns:1fr !important; gap:var(--gap); }
+    .wrap { width:100%; padding:0 12px; }
+    .card { margin-bottom:14px; padding:var(--card-pad); border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+    :root{
+      --fs-body:50px; --fs-h1:64px; --fs-h2:56px; --fs-label:46px; --fs-control:50px;
+      --fs-help:42px;
+      --control-min:84px; --btn-min:84px; --radius:20px; --gap:24px; --card-pad:26px; --pad-y:22px; --pad-x:24px;
+    }
+    #saveBtn{width:100%}
+  }
+</style>
+</head>
+<body>
+<script>(function(){try{var m=document.querySelector('meta[name=viewport]');if(!m){m=document.createElement('meta');m.name='viewport';document.head.appendChild(m);}m.setAttribute('content','width=device-width, initial-scale=1.0');if(window.visualViewport&&window.visualViewport.scale&&window.visualViewport.scale!==1){m.setAttribute('content','width=device-width, initial-scale='+(1/window.visualViewport.scale));}}catch(_){}})();</script>
+
+<div id="page">
+  <div class="wrap">
+    <img class="banner" src="<?= Util.escape(p.bannerUrl) ?>" alt="Conference Banner">
+
+    <div class="card">
+      <h1>Perth Conference 2026 - Pastor Registration</h1>
+      <div class="muted"><?= p.isNew ? "New registration" : "Editing your registration" ?></div>
+
+      <div class="grid">
+        <div><label>Pastor First Name</label><input id="firstName" type="text" autocomplete="given-name" value="<?= Util.escape(p.firstName) ?>"></div>
+        <div><label>Pastor Last Name</label><input id="lastName" type="text" autocomplete="family-name" value="<?= Util.escape(p.lastName) ?>"></div>
+
+        <div class="full"><label>Pastor Email</label><input id="email" type="email" autocomplete="email" value="<?= Util.escape(p.email) ?>"></div>
+
+        <div><label>Church (City)</label><input id="church" type="text" autocomplete="organization" value="<?= Util.escape(p.church) ?>"></div>
+
+        <div class="combo-wrap">
+          <label>Country</label>
+          <input id="country" type="text" list="countries" autocomplete="country-name" value="<?= Util.escape(p.country) ?>">
+          <div id="countryCombo" class="combo-list" role="listbox" aria-label="Country suggestions"></div>
+          <div id="countryWarn" class="sub"></div>
+        </div>
+
+        <div>
+          <label>Phone Number</label>
+          <input id="phone" type="tel" inputmode="tel" autocomplete="tel" value="<?= Util.escape(p.phone) ?>">
+          <div id="phoneWarn" class="sub"></div>
+        </div>
+
+        <div class="full">
+          <label>Pastor Attending?</label>
+          <div class="tog" data-name="attending">
+            <?!= togHtml_("attending","Yes",p.attending) ?>
+            <?!= togHtml_("attending","No",p.attending)  ?>
+          </div>
+          <input type="hidden" id="attending" value="<?= Util.escape(p.attending) ?>">
+        </div>
+      </div>
+
+      <div id="pastorExtras" class="collapse">
+        <div class="grid">
+          <div class="full">
+            <label>Wife Attending?</label>
+            <div class="tog" data-name="wifeAttending">
+              <?!= togHtml_("wifeAttending","Yes",p.wifeAttending) ?>
+              <?!= togHtml_("wifeAttending","No",p.wifeAttending)  ?>
+            </div>
+            <input type="hidden" id="wifeAttending" value="<?= Util.escape(p.wifeAttending) ?>">
+          </div>
+
+          <div id="wifeNameWrap" class="collapse <?= p.wifeAttending==='Yes'?'show':'' ?>">
+            <label>Wife First Name</label>
+            <input id="wifeFirst" type="text" autocomplete="given-name" value="<?= Util.escape(p.wifeFirst) ?>">
+          </div>
+
+          <div class="full">
+            <label>Require Accommodation?</label>
+            <div class="tog" data-name="requireAccom">
+              <?!= togHtml_("requireAccom","Yes",p.requireAccom) ?>
+              <?!= togHtml_("requireAccom","No",p.requireAccom)  ?>
+            </div>
+            <input type="hidden" id="requireAccom" value="<?= Util.escape(p.requireAccom) ?>">
+          </div>
+
+          <div id="accomWrap" class="full collapse <?= p.requireAccom==='Yes'?'show':'' ?>">
+            <div class="grid">
+              <div><label>Check-in Date</label><input id="checkIn" type="date" autocomplete="off" value="<?= Util.escape(p.checkIn) ?>"></div>
+              <div><label>Check-out Date</label><input id="checkOut" type="date" autocomplete="off" value="<?= Util.escape(p.checkOut) ?>"></div>
+              <div class="full">
+                <div id="dateNote" class="note">Conference nights: Mon-Fri (Mar 2-7, 2026).</div>
+                <div id="dateErr"  class="error" style="display:none;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="infantSection" class="full collapse <?= p.wifeAttending==='Yes'?'show':'' ?>">
+            <label>Bringing Infant?</label>
+            <div class="tog" data-name="bringingInfant">
+              <?!= togHtml_("bringingInfant","Yes",p.bringingInfant) ?>
+              <?!= togHtml_("bringingInfant","No",p.bringingInfant)  ?>
+            </div>
+            <input type="hidden" id="bringingInfant" value="<?= Util.escape(p.bringingInfant) ?>">
+          </div>
+
+          <div id="infantWrap" class="full collapse <?= p.bringingInfant==='Yes'?'show':'' ?>">
+            <div class="grid">
+              <div>
+                <label>Infant DOB</label>
+                <input id="infantDob" type="date" autocomplete="off" value="<?= Util.escape(p.infantDob) ?>">
+                <div id="infantWarn" class="error" style="display:none;"></div>
+              </div>
+              <div>
+                <label>Cot Required?</label>
+                <div class="tog" data-name="cotRequired">
+                  <?!= togHtml_("cotRequired","Yes",p.cotRequired) ?>
+                  <?!= togHtml_("cotRequired","No",p.cotRequired)  ?>
+                </div>
+                <input type="hidden" id="cotRequired" value="<?= Util.escape(p.cotRequired) ?>">
+              </div>
+            </div>
+          </div>
+
+          <div class="full"><label>Additional Comments</label><textarea id="comments"><?= Util.escape(p.comments) ?></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Delegates</h2>
+      <div id="delegatesArea"></div>
+      <div class="actions"><button id="addDelBtn" type="button" class="secondary">Add Delegate</button></div>
+    </div>
+
+    <div class="card">
+      <div class="actions"><button id="saveBtn" class="primary" type="button">Save Registration</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="overlay" class="overlay" aria-live="polite" aria-busy="true">
+  <div class="modal">
+    <div id="overlaySpinner" class="icon spinner" aria-hidden="true"></div>
+    <svg id="overlayCheck" class="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M20 6L9 17l-5-5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+    <svg id="overlayCross" class="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" stroke-width="3" stroke-linecap="round"></path>
+    </svg>
+    <div id="overlayTitle" class="overlay-title">Saving your registration...</div>
+    <div id="overlayText" class="overlay-text">Please wait</div>
+  </div>
+</div>
+<div id="toast" class="toast">Registration saved! A confirmation email and edit link have been sent to your email.</div>
+
+<!-- Fallback datalists -->
+<datalist id="countries"></datalist>
+
+<!-- Countries array (window.COUNTRIES) cached -->
+<?!= cacheInclude('09-countries', 21600); ?>
+
+<script>
+/* ---------- Data from server ---------- */
+const CONF_START = "<?= conf.start ?>";
+const CONF_END   = "<?= conf.end ?>";
+const CONF_NIGHTS = <?= conf.nights ?>;
+const INITIAL_DELEGATES = <?!= JSON.stringify(delegates || []) ?>;
+const THANKYOU_URL = <?!= JSON.stringify(p.thankyouUrl || "") ?>;
+
+/* ---------- Helpers ---------- */
+function esc(s){return String(s||"").replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function parseISO(s){ if(!s) return null; const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s); if(!m) return null; return new Date(+m[1],+m[2]-1,+m[3]);}
+function daysBetween(a,b){ if(!a||!b) return 0; return Math.round((b-a)/86400000); }
+function setHTML(id,html){const el=document.getElementById(id); if(el){el.innerHTML=html; el.style.display=html?'block':'none';}}
+function showCollapse(id,show){const el=document.getElementById(id); if(!el) return; show?el.classList.add('show'):el.classList.remove('show');}
+
+/* ---------- Reset helpers (NEW) ---------- */
+function resetToggle(groupName){
+  const group = document.querySelector('.tog[data-name="'+groupName+'"]');
+  if(group) group.querySelectorAll('.btn').forEach(b=>b.classList.remove('active'));
+  const hid = document.getElementById(groupName);
+  if(hid) hid.value = '';
+}
+function clearValue(id){
+  const el = document.getElementById(id);
+  if(el) el.value = '';
+}
+function clearPastorExtras(){
+  // toggles
+  resetToggle('wifeAttending');
+  resetToggle('requireAccom');
+  resetToggle('bringingInfant');
+  resetToggle('cotRequired');
+
+  // text/date inputs
+  ['wifeFirst','checkIn','checkOut','infantDob'].forEach(clearValue);
+
+  // hide sections
+  showCollapse('wifeNameWrap', false);
+  showCollapse('accomWrap', false);
+  showCollapse('infantSection', false);
+  showCollapse('infantWrap', false);
+
+  // clear warnings
+  setHTML('infantWarn','');
+  setHTML('dateErr','');
+}
+
+/* ---------- Country data & combobox ---------- */
+const COUNTRY_LIST=(window.COUNTRIES||[]);
+const COUNTRY_SET=new Set(COUNTRY_LIST.map(x=>String(x).toLowerCase()));
+
+function populateCountriesDatalist(){
+  const dl=document.getElementById('countries');
+  if(!dl || dl.children.length) return;
+  COUNTRY_LIST.forEach(c=>{const o=document.createElement('option'); o.value=c; dl.appendChild(o);});
+}
+function attachCombobox(inputId,listId,itemsGetter,onPick,opts){
+  opts=opts||{}; const minChars=opts.minChars??1, openOnFocus=!!opts.openOnFocus, limit=opts.limit??12;
+  const input=document.getElementById(inputId), list=document.getElementById(listId); if(!input||!list) return;
+  let idx=-1; const hide=()=>{list.classList.remove('show'); list.innerHTML=''; idx=-1;};
+  function render(reason){
+    const q=(input.value||'').toLowerCase().trim();
+    const canOpen=(q.length>=minChars)|| (openOnFocus && reason==='focus');
+    if(!canOpen){hide();return;}
+    const items=(itemsGetter()||[]).filter(x=>!q||x.toLowerCase().includes(q)).slice(0,limit);
+    if(!items.length){hide();return;}
+    list.innerHTML=''; items.forEach(txt=>{
+      const div=document.createElement('div'); div.className='combo-item'; div.textContent=txt;
+      div.addEventListener('mousedown',ev=>{ev.preventDefault(); pick(txt);}); list.appendChild(div);
+    });
+    list.classList.add('show'); idx=-1;
+  }
+  function highlight(i){const a=list.querySelectorAll('.combo-item'); if(!a.length) return;
+    if(idx>=0&&a[idx]) a[idx].classList.remove('active'); idx=Math.max(0,Math.min(i,a.length-1));
+    a[idx].classList.add('active'); a[idx].scrollIntoView({block:'nearest'});}
+  function pick(txt){ input.value=txt; hide(); try{onPick&&onPick(txt);}catch(_){}}  
+  input.addEventListener('focus',()=>render('focus'));
+  input.addEventListener('input',()=>render('input'));
+  input.addEventListener('blur',()=>setTimeout(hide,150));
+  input.addEventListener('keydown',e=>{
+    if(!list.classList.contains('show')) return;
+    if(e.key==='ArrowDown'){e.preventDefault();highlight(idx+1);}
+    else if(e.key==='ArrowUp'){e.preventDefault();highlight(idx-1);}
+    else if(e.key==='Enter'){e.preventDefault(); const it=list.querySelector('.combo-item.active')||list.querySelector('.combo-item'); if(it) pick(it.textContent);}
+    else if(e.key==='Escape'){hide();}
+  });
+}
+
+function hintCountry(){
+  const val=(document.getElementById('country').value||"").trim().toLowerCase();
+  if(!val){ setHTML('countryWarn',''); return; }
+  setHTML('countryWarn', COUNTRY_SET.has(val)?'':'Unrecognised country - please check spelling.');
+}
+function hintPhone(){
+  const c=(document.getElementById('country').value||"").trim().toLowerCase();
+  const v=(document.getElementById('phone').value||"").trim();
+  let msg='';
+  if(/^australia$/.test(c)){ if(v && !/^((\+61|0)4)\d{8}$/.test(v)) msg='AU mobiles look like 04XXXXXXXX or +614XXXXXXXX.'; }
+  else if(/^new\s?zealand$/.test(c)){ if(v && !/^((\+64|0)2)\d{7,9}$/.test(v)) msg='NZ mobiles start with 02... or +642...'; }
+  else { if(v && !/^\+?\d[\d\s()-]{6,}$/.test(v)) msg='Enter a valid phone (consider country code).'; }
+  setHTML('phoneWarn', msg);
+}
+
+/* ---------- Date checks ---------- */
+function checkDates(){
+  const a=parseISO(document.getElementById('checkIn')?.value||'');
+  const b=parseISO(document.getElementById('checkOut')?.value||'');
+  const s=parseISO(CONF_START), e=parseISO(CONF_END);
+  const nights=(a&&b)?daysBetween(a,b):0;
+  setHTML('dateErr',''); setHTML('dateNote','Conference nights: Mon-Fri (Mar 2-7, 2026).');
+  if(a&&b&&b<=a){ setHTML('dateErr','Check-out must be after check-in.'); return {ok:false}; }
+  if((a&&a<s)||(b&&b>e)){ setHTML('dateNote','Dates outside Mar 2-7, 2026 will be self-funded.'); return {ok:true}; }
+  if(nights && nights < CONF_NIGHTS){ setHTML('dateNote','You indicated fewer than full conference nights. Please check.'); }
+  return {ok:true};
+}
+function checkDelegateDates(idx){
+  const chk=document.getElementById('d_checkin_'+idx);
+  const cho=document.getElementById('d_checkout_'+idx);
+  if(!chk||!cho) return {ok:true};
+  const a=parseISO(chk.value||''), b=parseISO(cho.value||'');
+  const s=parseISO(CONF_START), e=parseISO(CONF_END);
+  const note=document.querySelector('.del-card[data-del-idx="'+idx+'"] .del-date-note');
+  const err=document.querySelector('.del-card[data-del-idx="'+idx+'"] .del-date-err');
+  if(err){err.innerHTML=''; err.style.display='none';}
+  if(note){note.innerHTML='Conference nights: Mon-Fri (Mar 2-7, 2026).';}
+  if(a&&b&&b<=a){ if(err){err.innerHTML='Check-out must be after check-in.'; err.style.display='block';} return {ok:false}; }
+  const nights=(a&&b)?daysBetween(a,b):0;
+  if((a&&a<s)||(b&&b>e)){ if(note) note.innerHTML='Dates outside Mar 2-7, 2026 will be self-funded.'; return {ok:true}; }
+  if(nights && nights<CONF_NIGHTS){ if(note) note.innerHTML='Fewer than full conference nights. Please check.'; }
+  return {ok:true};
+}
+
+/* ---------- Infant warnings (>=1yr only) ---------- */
+function checkInfant(){
+  const el=document.getElementById('infantWarn'); if(!el) return;
+  const dob=parseISO(document.getElementById('infantDob')?.value||''); const start=parseISO(CONF_START);
+  if(!dob){ el.style.display='none'; el.textContent=''; return; }
+  const ageDays=daysBetween(dob,start);
+  if(ageDays>=365){ el.textContent='Warning: infant appears 1 year+ by Mar 2, 2026. Nursery is for under 1.'; el.style.display='block'; }
+  else { el.style.display='none'; el.textContent=''; }
+}
+function checkDelegateInfant(idx){
+  const wrap=document.querySelector('.del-card[data-del-idx="'+idx+'"]'); if(!wrap) return;
+  const msg=wrap.querySelector('.del-infant-warn'); if(!msg) return;
+  const dob=parseISO(document.getElementById('d_infantdob_'+idx)?.value||''); const start=parseISO(CONF_START);
+  if(!dob){ msg.style.display='none'; msg.textContent=''; return; }
+  const ageDays=daysBetween(dob,start);
+  if(ageDays>=365){ msg.textContent='Warning: infant appears 1 year+ by Mar 2, 2026. Nursery is for under 1.'; msg.style.display='block'; }
+  else { msg.style.display='none'; msg.textContent=''; }
+}
+
+/* ---------- Delegate card template ---------- */
+function delegateCardTpl(idx,d){
+  d=d||{}; const status=d.status||''; const couple=(status==='Couple');
+  const requireAccom=d.requireAccom||''; const bringingInfant=d.bringingInfant||'';
+  return `
+  <div class="del-card" data-del-idx="${idx}">
+    <div class="del-head"><strong>Delegate:</strong>
+      <button type="button" class="del-remove" onclick="removeDelegate(${idx})">Remove</button>
+    </div>
+    <div class="grid">
+      <div><label>First Name</label><input id="d_first_${idx}" type="text" value="${esc(d.firstName||'')}"></div>
+      <div><label>Last Name</label><input id="d_last_${idx}" type="text" value="${esc(d.lastName||'')}"></div>
+
+      <div>
+        <label>Status</label>
+        <div class="tog" data-name="d_status_${idx}">
+          <div class="btn ${status==='Single'?'active':''}" data-val="Single">Single</div>
+          <div class="btn ${status==='Couple'?'active':''}" data-val="Couple">Couple</div>
+        </div>
+        <input type="hidden" id="d_status_${idx}" value="${esc(status)}">
+      </div>
+      <div>
+        <label>Phone</label>
+        <input id="d_phone_${idx}" type="tel" value="${esc(d.phone||'')}">
+      </div>
+
+      <div id="d_wife_wrap_${idx}" class="full collapse ${couple?'show':''}">
+        <label>Wife First Name</label><input id="d_wife_${idx}" type="text" value="${esc(d.wifeFirst||'')}">
+      </div>
+
+      <div class="full">
+        <label>Require Accommodation?</label>
+        <div class="tog" data-name="d_accom_${idx}">
+          <div class="btn ${requireAccom==='Yes'?'active':''}" data-val="Yes">Yes</div>
+          <div class="btn ${requireAccom==='No'?'active':''}" data-val="No">No</div>
+        </div>
+        <input type="hidden" id="d_accom_${idx}" value="${esc(requireAccom)}">
+      </div>
+
+      <div id="d_accom_wrap_${idx}" class="full collapse ${requireAccom==='Yes'?'show':''}">
+        <div class="grid">
+          <div><label>Check-in Date</label><input id="d_checkin_${idx}" type="date" value="${esc(d.checkIn||'')}"></div>
+          <div><label>Check-out Date</label><input id="d_checkout_${idx}" type="date" value="${esc(d.checkOut||'')}"></div>
+          <div class="full">
+            <div class="note del-date-note">Conference nights: Mon-Fri (Mar 2-7, 2026).</div>
+            <div class="error del-date-err" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="d_infant_section_${idx}" class="full collapse ${couple?'show':''}">
+        <label>Bringing Infant?</label>
+        <div class="tog" data-name="d_infant_${idx}">
+          <div class="btn ${bringingInfant==='Yes'?'active':''}" data-val="Yes">Yes</div>
+          <div class="btn ${bringingInfant==='No'?'active':''}" data-val="No">No</div>
+        </div>
+        <input type="hidden" id="d_infant_${idx}" value="${esc(bringingInfant)}">
+      </div>
+
+      <div id="d_infant_wrap_${idx}" class="full collapse ${bringingInfant==='Yes'?'show':''}">
+        <div class="grid">
+          <div>
+            <label>Infant DOB</label><input id="d_infantdob_${idx}" type="date" value="${esc(d.infantDob||'')}">
+            <div class="error del-infant-warn" style="display:none;"></div>
+          </div>
+          <div>
+            <label>Cot Required?</label>
+            <div class="tog" data-name="d_cot_${idx}">
+              <div class="btn ${(d.cotRequired||'')==='Yes'?'active':''}" data-val="Yes">Yes</div>
+              <div class="btn ${(d.cotRequired||'')==='No'?'active':''}" data-val="No">No</div>
+            </div>
+            <input type="hidden" id="d_cot_${idx}" value="${esc(d.cotRequired||'')}">
+          </div>
+        </div>
+      </div>
+
+      <div class="full"><label>Additional Comments</label><textarea id="d_notes_${idx}">${esc(d.notes||'')}</textarea></div>
+    </div>
+  </div>`;
+}
+
+/* ---------- Delegates add/remove ---------- */
+let delIdx=0;
+window.addDelegate=function(prefill){
+  delIdx++;
+  const html=delegateCardTpl(delIdx,prefill||{});
+  document.getElementById('delegatesArea').insertAdjacentHTML('beforeend',html);
+  document.getElementById('d_checkin_'+delIdx)?.addEventListener('change',()=>checkDelegateDates(delIdx));
+  document.getElementById('d_checkout_'+delIdx)?.addEventListener('change',()=>checkDelegateDates(delIdx));
+  document.getElementById('d_infantdob_'+delIdx)?.addEventListener('change',()=>checkDelegateInfant(delIdx));
+};
+window.removeDelegate=function(idx){
+  const card=document.querySelector('.del-card[data-del-idx="'+idx+'"]'); if(card) card.remove();
+};
+
+/* ---------- ONE delegated handler for ALL toggle buttons ---------- */
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('.btn'); if (!btn) return;
+  const group = btn.closest('.tog'); if (!group) return;
+  group.querySelectorAll('.btn').forEach(b => b.classList.toggle('active', b === btn));
+  const name = group.dataset.name || '';
+  const hid  = document.getElementById(name); if (hid) hid.value = btn.dataset.val;
+  handleToggleSideEffects(name, btn.dataset.val);
+});
+
+function handleToggleSideEffects(name, val){
+  // ---- Pastor toggles ----
+  if (name === 'attending'){
+    const on = (val==='Yes');
+    showCollapse('pastorExtras', on);
+    if(!on) clearPastorExtras();
+    return;
+  }
+
+  if (name === 'wifeAttending'){
+    const on = (val==='Yes');
+    showCollapse('wifeNameWrap', on);
+    showCollapse('infantSection', on);
+
+    if (!on){
+      clearValue('wifeFirst');
+      resetToggle('bringingInfant');
+      resetToggle('cotRequired');
+      clearValue('infantDob');
+      showCollapse('infantWrap', false);
+      setHTML('infantWarn','');
+    }
+    return;
+  }
+
+  if (name === 'bringingInfant'){
+    const on = (val==='Yes');
+    showCollapse('infantWrap', on);
+    if(!on){
+      resetToggle('cotRequired');
+      clearValue('infantDob');
+      setHTML('infantWarn','');
+    } else {
+      checkInfant();
+    }
+    return;
+  }
+
+  if (name === 'requireAccom'){
+    const on = (val==='Yes');
+    showCollapse('accomWrap', on);
+    if(!on){
+      clearValue('checkIn');
+      clearValue('checkOut');
+      setHTML('dateErr','');
+    } else {
+      checkDates();
+    }
+    return;
+  }
+
+  // ---- Delegate toggles ----
+  const m=/^(d_(status|accom|infant|cot)_(\d+))$/.exec(name);
+  if(!m) return;
+  const kind=m[2], idx=m[3];
+
+  if(kind==='status'){
+    const isCouple=(val==='Couple');
+    showCollapse('d_wife_wrap_'+idx, isCouple);
+    showCollapse('d_infant_section_'+idx, isCouple);
+
+    if(!isCouple){
+      // clear couple-only fields
+      const wf=document.getElementById('d_wife_'+idx); if(wf) wf.value='';
+      const bi=document.getElementById('d_infant_'+idx); if(bi) bi.value='';
+      const dob=document.getElementById('d_infantdob_'+idx); if(dob) dob.value='';
+      const cot=document.getElementById('d_cot_'+idx); if(cot) cot.value='';
+      showCollapse('d_infant_wrap_'+idx,false);
+      const warn=document.querySelector('.del-card[data-del-idx="'+idx+'"] .del-infant-warn');
+      if(warn){ warn.textContent=''; warn.style.display='none'; }
+    }
+    return;
+  }
+
+  if(kind==='accom'){
+    showCollapse('d_accom_wrap_'+idx, val==='Yes');
+    if(val!=='Yes'){
+      const ci=document.getElementById('d_checkin_'+idx); if(ci) ci.value='';
+      const co=document.getElementById('d_checkout_'+idx); if(co) co.value='';
+      const err=document.querySelector('.del-card[data-del-idx="'+idx+'"] .del-date-err');
+      if(err){ err.textContent=''; err.style.display='none'; }
+    } else {
+      checkDelegateDates(idx);
+    }
+    return;
+  }
+
+  if(kind==='infant'){
+    showCollapse('d_infant_wrap_'+idx, val==='Yes');
+    if(val!=='Yes'){
+      const dob=document.getElementById('d_infantdob_'+idx); if(dob) dob.value='';
+      const cot=document.getElementById('d_cot_'+idx); if(cot) cot.value='';
+      const warn=document.querySelector('.del-card[data-del-idx="'+idx+'"] .del-infant-warn');
+      if(warn){ warn.textContent=''; warn.style.display='none'; }
+    } else {
+      checkDelegateInfant(idx);
+    }
+    return;
+  }
+}
+
+/* ---------- Validation (required + conditional) ---------- */
+function clearFieldErrors(){
+  document.querySelectorAll('.field-error').forEach(el=>el.remove());
+  document.querySelectorAll('.invalid').forEach(el=>el.classList.remove('invalid'));
+}
+function addFieldError(elOrId,msg){
+  const el = typeof elOrId === 'string' ? document.getElementById(elOrId) : elOrId;
+  if(!el) return;
+  (el.classList ? el : (el.closest?.('.tog')||el)).classList.add('invalid');
+  const after = el.closest('.tog') || el;
+  const p = document.createElement('div'); p.className='field-error'; p.textContent=msg;
+  after.parentNode.appendChild(p);
+}
+function scrollToFirstError(){
+  const el=document.querySelector('.field-error, .invalid');
+  if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function validateRequiredPastor(){
+  let ok=true;
+
+  const need = [
+    ['firstName','First name is required.'],
+    ['lastName','Last name is required.'],
+    ['email','Email is required.'],
+    ['church','Church (City) is required.'],
+    ['phone','Phone number is required.'],
+  ];
+  need.forEach(([id,msg])=>{
+    if(!(document.getElementById(id)?.value||'').trim()){
+      addFieldError(id,msg); ok=false;
+    }
+  });
+
+  const email=document.getElementById('email')?.value||'';
+  if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    addFieldError('email','Enter a valid email.'); ok=false;
+  }
+
+  const attending=document.getElementById('attending')?.value||'';
+  if(!attending){
+    addFieldError(document.querySelector('.tog[data-name="attending"]'),'Please select Yes/No.');
+    return false;
+  }
+
+  // ✅ Only validate pastorExtras when pastor is attending
+  if(attending === 'Yes'){
+    const wifeAttending=document.getElementById('wifeAttending')?.value||'';
+    if(!wifeAttending){
+      addFieldError(document.querySelector('.tog[data-name="wifeAttending"]'),'Please select Yes/No.');
+      ok=false;
+    }
+
+    if(wifeAttending==='Yes'){
+      if(!(document.getElementById('wifeFirst')?.value||'').trim()){
+        addFieldError('wifeFirst','Wife first name is required.'); ok=false;
+      }
+
+      const bringingInfant=document.getElementById('bringingInfant')?.value||'';
+      if(!bringingInfant){
+        addFieldError(document.querySelector('.tog[data-name="bringingInfant"]'),'Please select Yes/No.');
+        ok=false;
+      }
+
+      if(bringingInfant==='Yes'){
+        if(!(document.getElementById('infantDob')?.value||'').trim()){
+          addFieldError('infantDob','Infant DOB is required.'); ok=false;
+        }
+      }
+    }
+
+    const requireAccom=document.getElementById('requireAccom')?.value||'';
+    if(!requireAccom){
+      addFieldError(document.querySelector('.tog[data-name="requireAccom"]'),'Please select Yes/No.');
+      ok=false;
+    }
+
+    if(requireAccom==='Yes'){
+      if(!(document.getElementById('checkIn')?.value||'').trim()){
+        addFieldError('checkIn','Check-in is required.'); ok=false;
+      }
+      if(!(document.getElementById('checkOut')?.value||'').trim()){
+        addFieldError('checkOut','Check-out is required.'); ok=false;
+      }
+      if(ok){
+        const r=checkDates();
+        if(!r.ok) ok=false;
+      }
+    }
+  }
+
+  return ok;
+}
+
+function validateRequiredDelegates(){
+  let ok=true;
+  const cards=[...document.querySelectorAll('.del-card')];
+  cards.forEach(card=>{
+    const idx=card.getAttribute('data-del-idx');
+    const must=[['d_first_'+idx,'First name is required.'],['d_last_'+idx,'Last name is required.']];
+    must.forEach(([id,msg])=>{ if(!(document.getElementById(id)?.value||'').trim()){ addFieldError(id,msg); ok=false; }});
+    const status=document.getElementById('d_status_'+idx)?.value||'';
+    if(!status){ addFieldError(card.querySelector('.tog[data-name="d_status_'+idx+'"]'),'Please choose status.'); ok=false; }
+    if(status==='Couple'){
+      if(!(document.getElementById('d_wife_'+idx)?.value||'').trim()){ addFieldError('d_wife_'+idx,'Wife first name is required.'); ok=false; }
+      const bi=document.getElementById('d_infant_'+idx)?.value||'';
+      if(!bi){ addFieldError(card.querySelector('.tog[data-name="d_infant_'+idx+'"]'),'Please select Yes/No.'); ok=false; }
+      if(bi==='Yes'){
+        if(!(document.getElementById('d_infantdob_'+idx)?.value||'').trim()){ addFieldError('d_infantdob_'+idx,'Infant DOB is required.'); ok=false; }
+      }
+    }
+    const ra=document.getElementById('d_accom_'+idx)?.value||'';
+    if(!ra){ addFieldError(card.querySelector('.tog[data-name="d_accom_'+idx+'"]'),'Please select Yes/No.'); ok=false; }
+    if(ra==='Yes'){
+      if(!(document.getElementById('d_checkin_'+idx)?.value||'').trim()){ addFieldError('d_checkin_'+idx,'Check-in is required.'); ok=false; }
+      if(!(document.getElementById('d_checkout_'+idx)?.value||'').trim()){ addFieldError('d_checkout_'+idx,'Check-out is required.'); ok=false; }
+      const r=checkDelegateDates(idx); if(!r.ok) ok=false;
+    }
+  });
+  return ok;
+}
+
+/* ---------- Initial setup ---------- */
+(function init(){
+  const att=(document.getElementById('attending').value||''); showCollapse('pastorExtras',att==='Yes');
+  const w=(document.getElementById('wifeAttending').value||''); const wifeOn=(w==='Yes');
+  showCollapse('wifeNameWrap',wifeOn); showCollapse('infantSection',wifeOn);
+  const bi=(document.getElementById('bringingInfant').value||''); showCollapse('infantWrap',bi==='Yes'&&wifeOn);
+  const ra=(document.getElementById('requireAccom').value||''); showCollapse('accomWrap',ra==='Yes');
+
+  document.getElementById('addDelBtn')?.addEventListener('click',()=>window.addDelegate());
+
+  ['country'].forEach(id=>document.getElementById(id)?.addEventListener('input',()=>{hintCountry(); hintPhone();}));
+  ['phone'].forEach(id=>document.getElementById(id)?.addEventListener('input',hintPhone));
+  ['checkIn','checkOut'].forEach(id=>document.getElementById(id)?.addEventListener('change',checkDates));
+  document.getElementById('infantDob')?.addEventListener('change',checkInfant);
+
+  populateCountriesDatalist();
+  attachCombobox('country','countryCombo',()=>COUNTRY_LIST,()=>{hintCountry(); hintPhone();},{minChars:1,openOnFocus:false,limit:12});
+
+  hintCountry(); hintPhone(); checkDates(); checkInfant();
+
+  if(Array.isArray(INITIAL_DELEGATES)&&INITIAL_DELEGATES.length){
+    INITIAL_DELEGATES.forEach(d=>window.addDelegate(d));
+  }
+})();
+
+/* ---------- Save flow ---------- */
+function setOverlayIcon(mode){
+  const sp=document.getElementById('overlaySpinner');
+  const ok=document.getElementById('overlayCheck');
+  const no=document.getElementById('overlayCross');
+  [sp,ok,no].forEach(el=>el&&el.classList.remove('show'));
+  if(mode==='success') ok.classList.add('show');
+  else if(mode==='error') no.classList.add('show');
+  else sp.classList.add('show');
+}
+function showOverlay(title,text){
+  document.getElementById('overlayTitle').textContent=title||'Saving your registration...';
+  document.getElementById('overlayText').textContent =text ||'Please wait';
+  setOverlayIcon('loading');
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('page').style.filter='blur(3px)';
+}
+function hideOverlay(){ document.getElementById('overlay').classList.remove('show'); document.getElementById('page').style.filter='none'; }
+function showToast(){ const t=document.getElementById('toast'); t.classList.remove('show'); void t.offsetWidth; t.classList.add('show'); }
+
+document.getElementById('saveBtn')?.addEventListener('click',save);
+
+function collectDelegates(){
+  return Array.from(document.querySelectorAll('.del-card')).map(c=>{
+    const i=c.getAttribute('data-del-idx');
+    return {
+      firstName:document.getElementById('d_first_'+i)?.value||'',
+      lastName: document.getElementById('d_last_'+i)?.value||'',
+      status:   document.getElementById('d_status_'+i)?.value||'',
+      wifeFirst:document.getElementById('d_wife_'+i)?.value||'',
+      requireAccom:document.getElementById('d_accom_'+i)?.value||'',
+      checkIn:  document.getElementById('d_checkin_'+i)?.value||'',
+      checkOut: document.getElementById('d_checkout_'+i)?.value||'',
+      bringingInfant:document.getElementById('d_infant_'+i)?.value||'',
+      infantDob:document.getElementById('d_infantdob_'+i)?.value||'',
+      cotRequired:document.getElementById('d_cot_'+i)?.value||'',
+      phone:    document.getElementById('d_phone_'+i)?.value||'',
+      notes:    document.getElementById('d_notes_'+i)?.value||''
+    };
+  });
+}
+function validateBeforeSave(){
+  clearFieldErrors();
+  let ok = validateRequiredPastor() & validateRequiredDelegates();
+  if(!ok){ scrollToFirstError(); return {ok:false,msg:'Please fix the highlighted fields.'}; }
+  const d=checkDates(); if(!d.ok){ scrollToFirstError(); return {ok:false,msg:'Please fix date errors.'}; }
+  const cards=Array.from(document.querySelectorAll('.del-card'));
+  for(const c of cards){
+    const idx=c.getAttribute('data-del-idx');
+    const r=checkDelegateDates(idx);
+    if(!r.ok){ scrollToFirstError(); return {ok:false,msg:'Please fix delegate date errors.'}; }
+  }
+  return {ok:true};
+}
+
+function save(){
+  const btn=document.getElementById('saveBtn'); btn.disabled=true;
+  const gate=validateBeforeSave();
+  if(!gate.ok){
+    showOverlay('Cannot save yet', gate.msg||'Please correct the highlighted errors.');
+    setOverlayIcon('error');
+    setTimeout(()=>{ hideOverlay(); btn.disabled=false; }, 3600);
+    return;
+  }
+  showOverlay('Saving your registration...','Please wait');
+
+  // Build payload, but if NOT attending, blank the dependent fields (keeps the sheet clean)
+  const attendingVal = document.getElementById('attending').value;
+
+  let wifeAttVal = document.getElementById('wifeAttending')?.value || '';
+  let wifeFirstVal = document.getElementById('wifeFirst')?.value || '';
+  let requireAccomVal = document.getElementById('requireAccom')?.value || '';
+  let checkInVal = document.getElementById('checkIn')?.value || '';
+  let checkOutVal = document.getElementById('checkOut')?.value || '';
+  let bringingInfantVal = document.getElementById('bringingInfant')?.value || '';
+  let infantDobVal = document.getElementById('infantDob')?.value || '';
+  let cotRequiredVal = document.getElementById('cotRequired')?.value || '';
+
+  if(attendingVal !== 'Yes'){
+    wifeAttVal = '';
+    wifeFirstVal = '';
+    requireAccomVal = '';
+    checkInVal = '';
+    checkOutVal = '';
+    bringingInfantVal = '';
+    infantDobVal = '';
+    cotRequiredVal = '';
+  }
+
+  const payload={
+    firstName:document.getElementById('firstName').value,
+    lastName: document.getElementById('lastName').value,
+    email:    document.getElementById('email').value,
+    church:   document.getElementById('church').value,
+    country:  document.getElementById('country').value,
+
+    attending: attendingVal,
+    wifeAttending: wifeAttVal,
+    wifeFirst: wifeFirstVal,
+    requireAccom: requireAccomVal,
+    checkIn:  checkInVal,
+    checkOut: checkOutVal,
+    bringingInfant: bringingInfantVal,
+    infantDob: infantDobVal,
+    cotRequired: cotRequiredVal,
+
+    phone:    document.getElementById('phone').value,
+    comments: document.getElementById('comments').value,
+    delegates:collectDelegates()
+  };
+
+  google.script.run.withSuccessHandler(() => {
+    setOverlayIcon('success');
+    document.getElementById('overlayTitle').textContent='Registration saved successfully';
+    document.getElementById('overlayText').textContent ='Redirecting...';
+
+    const target = String(THANKYOU_URL || '').trim();
+    if (target) {
+      window.location.assign(target);  // redirect to Data!A4
+      return;
+    }
+
+    // Fallback if A4 is empty: go to internal thank-you route
+    const u = new URL(window.location.href);
+    u.searchParams.delete('email');
+    u.searchParams.delete('admin');
+    u.searchParams.delete('key');
+    u.searchParams.delete('secret');
+    u.searchParams.set('thanks', '1');
+    window.location.assign(u.toString());
+
+  }).withFailureHandler(err => {
+    setOverlayIcon('error');
+    document.getElementById('overlayTitle').textContent='Save failed';
+    document.getElementById('overlayText').textContent =(err&&err.message)?err.message:'Please try again.';
+    setTimeout(()=>{ hideOverlay(); btn.disabled=false; }, 3600);
+  }).saveFormData(payload);
+}
+</script>
+</body>
+</html>
