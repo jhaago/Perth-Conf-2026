@@ -1,0 +1,78 @@
+<!-- ==========================
+FILE: 12-admin-ui.html  (UPDATED)
+Only the cards you requested are shown.
+========================== -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Conference Admin Dashboard</title>
+  <style>
+    :root{--bg:#0b1220;--card:#111827;--muted:#9ca3af;--text:#e5e7eb;--border:#374151;--primary:#3b82f6}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 Arial,Helvetica,sans-serif}
+    .wrap{max-width:1100px;margin:24px auto;padding:0 12px}
+    h1{margin:0 0 16px 0;font-size:22px}
+    .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+    .k{font-size:12px;color:var(--muted)}
+    .v{font-size:26px;font-weight:700;margin-top:2px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+    .btn{display:inline-block;background:var(--primary);color:#fff;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700}
+    .note{font-size:12px;color:var(--muted);margin-top:8px}
+    @media (max-width:1000px){.cards{grid-template-columns:1fr 1fr}}
+    @media (max-width:600px){.cards{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Admin Dashboard</h1>
+
+    <div class="cards">
+      <!-- Core counts -->
+      <div class="card"><div class="k">Pastors Attending (Yes)</div><div class="v"><?= stats.totals.attendingYes ?></div></div>
+      <div class="card"><div class="k">Pastors’ Wives Attending (Yes)</div><div class="v"><?= stats.totals.wifeYes ?></div></div>
+
+      <!-- Delegates breakdown -->
+      <div class="card"><div class="k">Delegates — Singles</div><div class="v"><?= stats.totals.singles ?></div></div>
+      <div class="card"><div class="k">Delegates — Couples</div><div class="v"><?= stats.totals.couples ?></div></div>
+
+      <!-- Infants + total attendees -->
+      <div class="card"><div class="k">Infants (&lt; 1 year)</div><div class="v"><?= stats.totals.infantsUnder1 ?></div></div>
+      <div class="card"><div class="k">Total Attendees</div><div class="v"><?= stats.totals.totalAttendees ?></div></div>
+
+      <!-- Response rate -->
+      <div class="card">
+        <div class="k">Response Rate</div>
+        <div class="v">
+          <? if (stats.invites.enabled && stats.invites.totalInvites > 0 && stats.invites.responseRate !== null) { ?>
+            <?= stats.invites.responseRate ?>%
+          <? } else { ?>
+            N/A
+          <? } ?>
+        </div>
+        <div class="note">
+  Invites: <?= stats.invites.totalInvites ?>,
+  Responses on list: <?= stats.invites.responded ?><? if (stats.invites.respondedAll != null) { ?>,
+  All responses: <?= stats.invites.respondedAll ?><? } ?>
+</div>
+
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <div class="k">Data</div>
+        <a class="btn" href="<?= stats.sheetUrl ?>" target="_blank" rel="noopener">Open Google Sheet</a>
+        <div class="note">Opens the spreadsheet backing this web app.</div>
+      </div>
+      <div class="card">
+        <div class="k">Form</div>
+        <a class="btn" href="<?= baseUrl ?>" target="_blank" rel="noopener">Open Registration Form</a>
+        <div class="note">Back to the public form.</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
